@@ -3,6 +3,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import admin from "firebase-admin";
 import dotenv from "dotenv";
+import serviceAccount from "./serviceAccount.json" assert { type: "json" };
 
 dotenv.config();
 
@@ -12,27 +13,35 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// Initialize Firebase Admin SDK
+// Initialize Firebase Admin SDK using hardcoded credentials
 admin.initializeApp({
-  credential: admin.credential.applicationDefault(),
+  credential: admin.credential.cert(serviceAccount),
 });
 
-// Basic test route
 app.get("/", (req, res) => {
+  console.log("GET / - Server is up");
   res.send("Tribes Node Server is Running");
 });
 
-// Notification endpoint
+// POST /send-notification endpoint
 app.post("/send-notification", async (req, res) => {
   const { token, title, body, data } = req.body;
 
+  console.log("Received notification request:");
+  console.log("Token:", token);
+  console.log("Title:", title);
+  console.log("Body:", body);
+  console.log("Data:", data);
+
   try {
-    await admin.messaging().send({
+    const response = await admin.messaging().send({
       token,
       notification: { title, body },
       data,
     });
-    res.status(200).json({ success: true });
+
+    console.log("Successfully sent notification:", response);
+    res.status(200).json({ success: true, response });
   } catch (error) {
     console.error("Error sending notification:", error);
     res.status(500).json({ success: false, error: error.message });
@@ -40,5 +49,5 @@ app.post("/send-notification", async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+  console.log(`🚀 Server listening on port ${port}`);
 });
