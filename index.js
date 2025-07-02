@@ -3,9 +3,12 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import admin from "firebase-admin";
 import dotenv from "dotenv";
-import serviceAccount from "./serviceAccount.json" assert { type: "json" };
+import { createRequire } from "node:module";
 
 dotenv.config();
+
+const require = createRequire(import.meta.url);
+const serviceAccount = require("./serviceAccountKey.json");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -13,7 +16,7 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// Initialize Firebase Admin SDK using hardcoded credentials
+// Initialize Firebase Admin SDK
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
@@ -40,10 +43,10 @@ app.post("/send-notification", async (req, res) => {
       data,
     });
 
-    console.log("Successfully sent notification:", response);
+    console.log("✅ Notification sent successfully:", response);
     res.status(200).json({ success: true, response });
   } catch (error) {
-    console.error("Error sending notification:", error);
+    console.error("❌ Error sending notification:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
