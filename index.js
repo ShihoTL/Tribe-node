@@ -29,26 +29,28 @@ app.get("/", (req, res) => {
 // POST /send-notification endpoint
 app.post("/send-notification", async (req, res) => {
   const { token, title, body, data } = req.body;
+  const tribeId = data?.tribeId;
+  const topic = tribeId ? `tribe_${tribeId}` : null;
 
   console.log("Received notification request:");
-  console.log("Token:", token);
+  if (token) console.log("Token:", token);
+  if (topic) console.log("Topic:", topic);
   console.log("Title:", title);
   console.log("Body:", body);
   console.log("Data:", data);
 
-  const tribeId = data?.tribeId;
-
-  if (!tribeId) {
-    return res
-      .status(400)
-      .json({ success: false, error: "tribeId is missing from data" });
+  if (!token && !tribeId) {
+    return res.status(400).json({
+      success: false,
+      error: "Either token or data.tribeId (for topic) is required",
+    });
   }
 
   try {
     const response = await admin.messaging().send({
-      topic: `tribe_${tribeId}`,
       notification: { title, body },
       data,
+      ...(topic ? { topic } : { token }),
     });
 
     console.log("✅ Notification sent successfully:", response);
