@@ -37,8 +37,8 @@ app.post("/send-notification", async (req, res) => {
   console.log("Data:", data);
 
   try {
-    const response = await admin.messaging().send({
-      token,
+    await admin.messaging().send({
+      topic: `tribe_${tribeId}`,
       notification: { title, body },
       data,
     });
