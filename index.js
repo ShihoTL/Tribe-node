@@ -36,14 +36,23 @@ app.post("/send-notification", async (req, res) => {
   console.log("Body:", body);
   console.log("Data:", data);
 
+  const tribeId = data?.tribeId;
+
+  if (!tribeId) {
+    return res
+      .status(400)
+      .json({ success: false, error: "tribeId is missing from data" });
+  }
+
   try {
-    await admin.messaging().send({
+    const response = await admin.messaging().send({
       topic: `tribe_${tribeId}`,
       notification: { title, body },
       data,
     });
 
     console.log("✅ Notification sent successfully:", response);
+    console.log("Full Payload:", JSON.stringify(req.body, null, 2));
     res.status(200).json({ success: true, response });
   } catch (error) {
     console.error("❌ Error sending notification:", error);
